@@ -1,6 +1,4 @@
 defmodule JidoOtel.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
   @moduledoc false
 
   use Application
@@ -8,12 +6,9 @@ defmodule JidoOtel.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: JidoOtel.Worker.start_link(arg)
-      # {JidoOtel.Worker, arg}
+      # Supervision tree will be expanded with observable components
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: JidoOtel.Supervisor]
     Supervisor.start_link(children, opts)
   end

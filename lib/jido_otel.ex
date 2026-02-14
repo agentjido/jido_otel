@@ -1,18 +1,17 @@
 defmodule JidoOtel do
   @moduledoc """
-  Documentation for `JidoOtel`.
+  OpenTelemetry extension for the Jido.Observe system.
+
+  JidoOtel provides integrated observability instrumentation for Jido-based
+  applications, bridging the Jido ecosystem with standard OpenTelemetry practices.
+
+  ## Overview
+
+  This library is in active development. See the project README for more information.
   """
 
   @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> JidoOtel.hello()
-      :world
-
+  Returns the current version of JidoOtel.
   """
-  def hello do
-    :world
-  end
+  def version, do: "0.1.0"
 end
