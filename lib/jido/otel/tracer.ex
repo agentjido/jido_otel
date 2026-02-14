@@ -21,6 +21,12 @@ defmodule Jido.Otel.Tracer do
           started_by: pid()
         }
 
+  @doc """
+  Starts an OpenTelemetry span from a Jido event prefix and metadata map.
+
+  The event prefix is converted to a dot-joined span name and metadata is
+  normalized into OpenTelemetry-compatible span attributes.
+  """
   @impl true
   @spec span_start(Jido.Observe.Tracer.event_prefix(), Jido.Observe.Tracer.metadata()) :: tracer_ctx()
   def span_start(event_prefix, metadata) when is_list(event_prefix) and is_map(metadata) do
@@ -45,6 +51,9 @@ defmodule Jido.Otel.Tracer do
     }
   end
 
+  @doc """
+  Finalizes a successful span and attaches measurements as span attributes.
+  """
   @impl true
   @spec span_stop(Jido.Observe.Tracer.tracer_ctx(), Jido.Observe.Tracer.measurements()) :: :ok
   def span_stop(tracer_ctx, measurements) when is_map(measurements) do
@@ -68,6 +77,9 @@ defmodule Jido.Otel.Tracer do
     :ok
   end
 
+  @doc """
+  Finalizes a failed span, records an exception event, and marks the span as error.
+  """
   @impl true
   @spec span_exception(Jido.Observe.Tracer.tracer_ctx(), atom(), term(), list()) :: :ok
   def span_exception(tracer_ctx, kind, reason, stacktrace) when is_atom(kind) and is_list(stacktrace) do

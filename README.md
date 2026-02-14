@@ -4,6 +4,13 @@ OpenTelemetry extension for the Jido.Observe system.
 
 `Jido.Otel` provides integrated observability instrumentation for Jido-based applications, bridging the Jido ecosystem with standard OpenTelemetry practices.
 
+## What It Does
+
+- Implements `Jido.Observe.Tracer` as `Jido.Otel.Tracer`
+- Converts Jido event prefixes to span names (`[:jido, :agent, :run]` -> `jido.agent.run`)
+- Maps Jido metadata and measurements to OpenTelemetry attributes
+- Records exceptions as OpenTelemetry exception events
+
 ## Installation
 
 Add `jido_otel` to your dependencies in `mix.exs`:
@@ -57,12 +64,26 @@ end)
 
 For exporting to an OTLP collector, set your preferred exporter config in your host application.
 
+## Guides
+
+- [Quickstart](./guides/quickstart.md)
+- [Configuration](./guides/configuration.md)
+- [Release Checklist](./guides/release-checklist.md)
+
+## Release Quality Checks
+
+Run the full public-release gate locally:
+
+```bash
+mix release.check
+```
+
 Full documentation is available at [https://hexdocs.pm/jido_otel](https://hexdocs.pm/jido_otel).
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 ## License
 
-Apache License 2.0 - see [LICENSE](./LICENSE) for details.
+Apache License 2.0 - see [LICENSE](LICENSE) for details.

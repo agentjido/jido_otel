@@ -19,6 +19,7 @@
 # Generated files
 /doc/
 erl_crash.dump
+/jido_otel-*.tar
 
 # OS
 .DS_Store

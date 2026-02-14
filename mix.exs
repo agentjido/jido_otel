@@ -3,7 +3,7 @@ defmodule Jido.Otel.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/agentjido/jido_otel"
-  @description "OpenTelemetry extension for Jido.Observe system"
+  @description "OpenTelemetry tracer bridge for Jido.Observe"
 
   def project do
     [
@@ -17,22 +17,12 @@ defmodule Jido.Otel.MixProject do
 
       # Documentation
       name: "Jido.Otel",
-      docs: [
-        main: "Jido.Otel",
-        source_ref: "v#{@version}",
-        source_url: @source_url,
-        extra_section: "GUIDES"
-      ],
+      docs: docs(),
       source_url: @source_url,
       homepage_url: @source_url,
 
       # Hex
-      package: [
-        description: @description,
-        licenses: ["Apache-2.0"],
-        links: %{"GitHub" => @source_url},
-        maintainers: ["Jido Contributors"]
-      ],
+      package: package(),
 
       # Testing
       test_coverage: [
@@ -48,7 +38,7 @@ defmodule Jido.Otel.MixProject do
       ],
       # Dialyzer
       dialyzer: [
-        plt_add_apps: [:ex_unit, :mix, :gen_stage]
+        plt_add_apps: [:ex_unit, :mix]
       ]
     ]
   end
@@ -95,8 +85,8 @@ defmodule Jido.Otel.MixProject do
       # Dev/Test
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.31", only: :dev, runtime: false},
-      {:doctor, "~> 0.21", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
+      {:doctor, "~> 0.22", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18", only: [:dev, :test]},
       {:git_hooks, "~> 0.8", only: [:dev, :test], runtime: false},
       {:git_ops, "~> 2.9", only: :dev, runtime: false},
@@ -113,7 +103,50 @@ defmodule Jido.Otel.MixProject do
         "dialyzer",
         "doctor --raise"
       ],
+      "release.check": [
+        "quality",
+        "cmd env MIX_ENV=test mix test",
+        "docs",
+        "cmd mix hex.build"
+      ],
       test: ["test --cover"]
+    ]
+  end
+
+  defp docs do
+    guides = Path.wildcard("guides/*.md") |> Enum.sort()
+
+    [
+      main: "readme",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      extras: ["README.md", "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE" | guides],
+      groups_for_extras: [
+        Guides: guides,
+        Reference: ["CHANGELOG.md", "CONTRIBUTING.md", "LICENSE"]
+      ]
+    ]
+  end
+
+  defp package do
+    [
+      description: @description,
+      licenses: ["Apache-2.0"],
+      links: %{
+        "GitHub" => @source_url,
+        "HexDocs" => "https://hexdocs.pm/jido_otel"
+      },
+      maintainers: ["Jido Contributors"],
+      files: [
+        "lib",
+        "guides",
+        "mix.exs",
+        ".formatter.exs",
+        "README.md",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "LICENSE"
+      ]
     ]
   end
 end

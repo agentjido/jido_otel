@@ -94,6 +94,57 @@ defmodule Jido.Otel.TracerTest do
     assert is_binary(event_attributes["stacktrace"])
   end
 
+  test "supports empty prefix names and normalizes additional attribute types" do
+    tracer_ctx =
+      Tracer.span_start([], %{
+        {:complex, :key} => "tuple-key",
+        empty_list: [],
+        bools: [true, false],
+        ints: [1, 2],
+        floats: [1.5, 2.5],
+        atoms: [:one, :two]
+      })
+
+    assert :ok = Tracer.span_stop(tracer_ctx, %{})
+
+    exported_span = assert_exported_span()
+
+    assert span(name: "jido.span") = exported_span
+
+    attributes = span_attributes(exported_span)
+
+    # Empty lists are normalized in the tracer but may be dropped by the OTel SDK.
+    assert attributes["bools"] == [true, false]
+    assert attributes["ints"] == [1, 2]
+    assert attributes["floats"] == [1.5, 2.5]
+    assert attributes["atoms"] == ["one", "two"]
+    assert attributes["{:complex, :key}"] == "tuple-key"
+  end
+
+  test "span_stop handles foreign started_by contexts safely" do
+    tracer_ctx = Tracer.span_start([:jido, :agent, :foreign], %{})
+
+    foreign_pid =
+      spawn(fn ->
+        receive do
+        end
+      end)
+
+    foreign_ctx = %{tracer_ctx | started_by: foreign_pid}
+
+    assert :ok = Tracer.span_stop(foreign_ctx, %{})
+    assert span(name: "jido.agent.foreign") = assert_exported_span()
+
+    Process.exit(foreign_pid, :kill)
+  end
+
+  test "span_stop and span_exception ignore invalid tracer contexts" do
+    assert :ok = Tracer.span_stop(:invalid_ctx, %{duration: 1})
+    assert :ok = Tracer.span_exception(:invalid_ctx, :error, :boom, [])
+
+    refute_receive {:span, _exported_span}, 50
+  end
+
   test "Jido.Observe uses Jido.Otel.Tracer when configured in jido observability config" do
     previous_observability = Application.get_env(:jido, :observability, [])
 

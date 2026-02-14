@@ -19,6 +19,9 @@ mix test
 # Run all quality checks
 mix quality
 
+# Run release-grade checks
+mix release.check
+
 # Check documentation coverage
 mix doctor --raise
 ```
@@ -68,6 +71,7 @@ Valid types:
 - All public functions must have `@doc` and `@spec`
 - Add examples to module documentation
 - Update CHANGELOG.md for user-facing changes
+- Keep guides in `guides/` updated for operational workflows
 
 ## License
 
