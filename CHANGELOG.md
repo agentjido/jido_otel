@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial spike of JidoOtel package structure
+- Initial spike of Jido.Otel package structure
 - Support for Jido.Observe integration
 - Basic module scaffolding
 

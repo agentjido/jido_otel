@@ -1,8 +1,8 @@
-# AGENTS.md - JidoOtel Development Guide
+# AGENTS.md - Jido.Otel Development Guide
 
 ## Project Overview
 
-JidoOtel is an OpenTelemetry extension for the Jido.Observe system, providing integrated observability instrumentation for Jido-based applications.
+Jido.Otel is an OpenTelemetry extension for the Jido.Observe system, providing integrated observability instrumentation for Jido-based applications.
 
 ## Common Commands
 
@@ -130,7 +130,7 @@ mix test --only tag_name
 All public modules and functions must have documentation:
 
 ```elixir
-defmodule JidoOtel.Module do
+defmodule Jido.Otel.Module do
   @moduledoc """
   Brief description of this module.
 
@@ -139,7 +139,7 @@ defmodule JidoOtel.Module do
 
   ## Examples
 
-      iex> JidoOtel.Module.function(:arg)
+      iex> Jido.Otel.Module.function(:arg)
       {:ok, :result}
   """
 

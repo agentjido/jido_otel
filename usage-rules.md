@@ -1,10 +1,10 @@
-# JidoOtel - LLM Usage Rules
+# Jido.Otel - LLM Usage Rules
 
-This document provides rules and patterns for AI assistants (Cursor, Claude, etc.) when working with JidoOtel.
+This document provides rules and patterns for AI assistants (Cursor, Claude, etc.) when working with Jido.Otel.
 
 ## Project Context
 
-**JidoOtel** is an OpenTelemetry extension for the Jido.Observe system. It bridges the Jido ecosystem with standard OpenTelemetry practices for observability.
+**Jido.Otel** is an OpenTelemetry extension for the Jido.Observe system. It bridges the Jido ecosystem with standard OpenTelemetry practices for observability.
 
 ## Key Principles
 
@@ -80,14 +80,14 @@ Every public module must have:
 ### Error Handling
 
 ```elixir
-# In JidoOtel.Error module
+# In Jido.Otel.Error module
 defmodule TraceError do
   @moduledoc "Error for tracing failures."
   defexception [:message, :details]
 end
 
 # Usage
-raise JidoOtel.Error.trace_error("Failed to create span", span_id: "123")
+raise Jido.Otel.Error.trace_error("Failed to create span", span_id: "123")
 ```
 
 ### Configuration

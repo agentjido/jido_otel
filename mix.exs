@@ -1,4 +1,4 @@
-defmodule JidoOtel.MixProject do
+defmodule Jido.Otel.MixProject do
   use Mix.Project
 
   @version "0.1.0"
@@ -16,9 +16,9 @@ defmodule JidoOtel.MixProject do
       aliases: aliases(),
 
       # Documentation
-      name: "JidoOtel",
+      name: "Jido.Otel",
       docs: [
-        main: "JidoOtel",
+        main: "Jido.Otel",
         source_ref: "v#{@version}",
         source_url: @source_url,
         extra_section: "GUIDES"
@@ -46,13 +46,6 @@ defmodule JidoOtel.MixProject do
           "raise.*RuntimeError"
         ]
       ],
-      preferred_cli_env: [
-        coveralls: :test,
-        "coveralls.detail": :test,
-        "coveralls.post": :test,
-        "coveralls.html": :test
-      ],
-
       # Dialyzer
       dialyzer: [
         plt_add_apps: [:ex_unit, :mix, :gen_stage]
@@ -60,10 +53,21 @@ defmodule JidoOtel.MixProject do
     ]
   end
 
+  def cli do
+    [
+      preferred_envs: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
+      ]
+    ]
+  end
+
   def application do
     [
-      mod: {JidoOtel.Application, []},
-      extra_applications: [:logger]
+      mod: {Jido.Otel.Application, []},
+      extra_applications: [:logger, :opentelemetry]
     ]
   end
 
@@ -74,6 +78,10 @@ defmodule JidoOtel.MixProject do
     [
       # Jido ecosystem
       {:jido, "~> 2.0.0-rc.2"},
+
+      # OpenTelemetry runtime
+      {:opentelemetry, "~> 1.7"},
+      {:opentelemetry_api, "~> 1.5"},
 
       # Schema validation
       {:zoi, "~> 0.16"},

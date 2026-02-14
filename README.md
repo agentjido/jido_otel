@@ -1,8 +1,8 @@
-# JidoOtel
+# Jido.Otel
 
 OpenTelemetry extension for the Jido.Observe system.
 
-JidoOtel provides integrated observability instrumentation for Jido-based applications, bridging the Jido ecosystem with standard OpenTelemetry practices.
+`Jido.Otel` provides integrated observability instrumentation for Jido-based applications, bridging the Jido ecosystem with standard OpenTelemetry practices.
 
 ## Installation
 
@@ -32,12 +32,30 @@ mix igniter.install jido_otel
 
 ## Quick Start
 
+Configure Jido to use the OpenTelemetry tracer:
+
 ```elixir
-# Start observability instrumentation
-JidoOtel.start_link([])
+config :jido, :observability,
+  tracer: Jido.Otel.Tracer
 ```
 
-## Documentation
+Configure your OpenTelemetry SDK (minimal local baseline):
+
+```elixir
+config :opentelemetry,
+  traces_exporter: :none
+```
+
+Use `Jido.Observe` spans as usual and they will be bridged to OpenTelemetry:
+
+```elixir
+Jido.Observe.with_span([:jido, :agent, :action, :run], %{agent_id: "agent-1"}, fn ->
+  # perform work
+  :ok
+end)
+```
+
+For exporting to an OTLP collector, set your preferred exporter config in your host application.
 
 Full documentation is available at [https://hexdocs.pm/jido_otel](https://hexdocs.pm/jido_otel).
 

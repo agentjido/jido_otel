@@ -1,6 +1,6 @@
-# Contributing to JidoOtel
+# Contributing to Jido.Otel
 
-Thank you for your interest in contributing to JidoOtel!
+Thank you for your interest in contributing to Jido.Otel!
 
 ## Development Setup
 
