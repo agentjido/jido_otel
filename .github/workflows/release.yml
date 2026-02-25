@@ -13,11 +13,6 @@ on:
         required: false
         type: boolean
         default: false
-      skip_tests:
-        description: "Skip tests before release"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -25,9 +20,9 @@ permissions:
 jobs:
   release:
     name: Release
-    uses: agentjido/github-actions/.github/workflows/elixir-release.yml@main
+    uses: agentjido/github-actions/.github/workflows/elixir-release.yml@33a4f1143b681c26be9b68d5e8feb74dfce4083c
     with:
       dry_run: ${{ inputs.dry_run }}
       hex_dry_run: ${{ inputs.hex_dry_run }}
-      skip_tests: ${{ inputs.skip_tests }}
+      skip_tests: false
     secrets: inherit

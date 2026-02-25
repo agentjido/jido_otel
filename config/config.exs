@@ -7,4 +7,8 @@ config :logger,
 config :opentelemetry,
   traces_exporter: :none
 
+# OTP-safe default for async span lifecycles.
+config :jido_otel,
+  current_span_mode: :safe
+
 import_config "#{config_env()}.exs"

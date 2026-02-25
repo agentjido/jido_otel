@@ -30,7 +30,19 @@ config :opentelemetry,
 
 To export traces in production, configure an exporter in your host app.
 
-## 4. Emit a Span
+## 4. Configure Tracer Runtime Mode
+
+Use OTP-safe behavior by default:
+
+```elixir
+config :jido_otel,
+  current_span_mode: :safe
+```
+
+If you need legacy same-process span activation semantics, set `current_span_mode: :activate_unsafe`.
+For async `start_span`/`finish_span` flows across processes, keep `:safe`.
+
+## 5. Emit a Span
 
 ```elixir
 Jido.Observe.with_span([:jido, :agent, :action, :run], %{agent_id: "agent-1"}, fn ->
@@ -39,3 +51,5 @@ end)
 ```
 
 The span name becomes `jido.agent.action.run` and metadata is attached as OpenTelemetry attributes.
+
+Terminal span callbacks are idempotent (`first_terminal_call_wins`).

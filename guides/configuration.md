@@ -3,6 +3,7 @@
 `Jido.Otel` uses two configuration surfaces:
 
 - `:jido` for selecting the tracer implementation.
+- `:jido_otel` for tracer runtime behavior.
 - `:opentelemetry` for SDK/exporter behavior.
 
 ## Jido Observability Config
@@ -35,6 +36,22 @@ config :opentelemetry,
   traces_exporter: :otlp
 ```
 
+## Jido.Otel Runtime Config
+
+Use `:jido_otel` to configure current-span activation behavior:
+
+```elixir
+config :jido_otel,
+  current_span_mode: :safe
+```
+
+Valid values:
+
+- `:safe` (default): does not set current process span in `span_start/2`. Recommended for production and async workloads.
+- `:activate_unsafe`: preserves same-process activation/restore behavior. Use only when you explicitly need legacy current-span activation semantics.
+
+If `:activate_unsafe` is enabled and `span_stop/2` or `span_exception/4` runs in another process, restore is skipped and a warning is logged.
+
 ## Attribute Mapping Rules
 
 `Jido.Otel.Tracer` normalizes metadata and measurements into OpenTelemetry attributes:
@@ -49,3 +66,5 @@ Exception spans additionally include:
 - Span status `:error`
 - Exception event named `:exception`
 - Attributes `error.kind` and `error.reason`
+
+`Jido.Otel.Tracer` terminal callbacks are idempotent (`first_terminal_call_wins`): if `span_stop/2` and `span_exception/4` race for the same span context, only the first terminal call applies status/events and ends the span.

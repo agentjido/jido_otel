@@ -99,7 +99,9 @@ defmodule Jido.Otel.MixProject do
       setup: ["deps.get"],
       quality: [
         "format --check-formatted",
+        "compile --warnings-as-errors",
         "credo --strict",
+        "deps.unlock --check-unused",
         "dialyzer",
         "doctor --raise"
       ],
