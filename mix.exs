@@ -73,24 +73,13 @@ defmodule Jido.Otel.MixProject do
       {:opentelemetry, "~> 1.7"},
       {:opentelemetry_api, "~> 1.5"},
 
-      # Schema validation
-      {:zoi, "~> 0.16"},
-
-      # Error handling
-      {:splode, "~> 0.3.0"},
-
-      # JSON
-      {:jason, "~> 1.4"},
-
       # Dev/Test
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.40", only: :dev, runtime: false},
       {:doctor, "~> 0.22", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18", only: [:dev, :test]},
-      {:git_hooks, "~> 0.8", only: [:dev, :test], runtime: false},
-      {:git_ops, "~> 2.9", only: :dev, runtime: false},
-      {:mimic, "~> 2.0", only: :test}
+      {:git_ops, "~> 2.9", only: :dev, runtime: false}
     ]
   end
 
