@@ -84,9 +84,7 @@ jido_otel/
 - `ex_doc` - Documentation
 - `doctor` - Doc coverage
 - `excoveralls` - Coverage reports
-- `git_hooks` - Git automation
 - `git_ops` - Release management
-- `mimic` - Mocking
 
 ## Git Commit Guidelines
 
