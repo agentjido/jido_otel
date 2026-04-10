@@ -20,7 +20,7 @@ permissions:
 jobs:
   release:
     name: Release
-    uses: agentjido/github-actions/.github/workflows/elixir-release.yml@33a4f1143b681c26be9b68d5e8feb74dfce4083c
+    uses: agentjido/github-actions/.github/workflows/elixir-release.yml@v3
     with:
       dry_run: ${{ inputs.dry_run }}
       hex_dry_run: ${{ inputs.hex_dry_run }}
