@@ -1,6 +1,7 @@
-# Upstream Alignment Proposal (`jido`)
+# Upstream Alignment (`jido`)
 
-This document captures the proposed upstream coordination work for `Jido.Observe` and tracer adapters.
+This document captures the upstream coordination work for `Jido.Observe` and
+tracer adapters.
 
 ## Problem Statement
 
@@ -11,16 +12,20 @@ This document captures the proposed upstream coordination work for `Jido.Observe
 
 OpenTelemetry current span context is process-local. Tracer adapters that mutate current process span context in `span_start/2` can leak context when spans are finished in another process.
 
-## Proposed Upstream Changes
+## Upstream Changes
 
-1. Add a scoped callback path for synchronous span execution.
-2. Keep async callbacks explicit and context-neutral by default.
-3. Introduce optional behavior callbacks for adapters that need process-scoped activation semantics.
-4. Clarify process-local context constraints in `Jido.Observe` docs and examples.
+Implemented in `jido`:
 
-## Candidate API Direction
+1. `Jido.Observe.Tracer` exposes optional `with_span_scope/3`.
+2. `Jido.Observe.with_span/3` uses `with_span_scope/3` when the configured
+   tracer implements it.
+3. Async callbacks remain explicit and context-neutral by default.
+4. `Jido.Observe` documents process-local context constraints for sync versus
+   async spans.
 
-Example behavior extension (illustrative only):
+## Callback API
+
+Tracer behavior extension:
 
 ```elixir
 @callback with_span_scope(
@@ -32,22 +37,26 @@ Example behavior extension (illustrative only):
 
 Notes:
 
-- `with_span_scope/3` would be optional and used by `Jido.Observe.with_span/3` when implemented.
+- `with_span_scope/3` is optional and used by `Jido.Observe.with_span/3` when implemented.
 - Async `start_span/2` and finish callbacks remain unchanged and must not assume same-process completion.
 
-## Suggested Upstream Issue Draft
+## Adapter Guidance
 
-Title:
+`Jido.Otel.Tracer` implements `with_span_scope/3` by activating the OTel span
+only for the duration of the synchronous callback and restoring the previous
+current span before returning. This keeps nested same-process OTel
+instrumentation correctly parented while preserving safe async lifecycle behavior
+for `start_span/2` and terminal callbacks.
 
-`observe: add scoped tracer callback path for OTP-safe sync spans`
+Adapter implementations should:
 
-Body outline:
-
-1. Describe process-local OTel context and async finish caveat.
-2. Propose optional scoped callback to separate sync and async semantics.
-3. Keep existing callback compatibility, with defaults preserving current behavior.
-4. Add migration notes for adapter maintainers.
+1. Call the provided function in the caller process.
+2. Call the provided function exactly once.
+3. Preserve the function return value.
+4. Preserve exception, throw, and exit semantics.
+5. Keep async `span_start/2` context-neutral unless a caller explicitly opts into
+   unsafe same-process activation behavior.
 
 ## Status
 
-Opened upstream issue: [agentjido/jido#176](https://github.com/agentjido/jido/issues/176)
+Upstream issue: [agentjido/jido#176](https://github.com/agentjido/jido/issues/176)

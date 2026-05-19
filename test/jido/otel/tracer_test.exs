@@ -140,6 +140,34 @@ defmodule Jido.Otel.TracerTest do
     assert span(name: "jido.agent.42") = assert_exported_span()
   end
 
+  test "sanitizes sensitive, stacktrace, and high-cardinality span attributes" do
+    long_value = String.duplicate("x", 700)
+
+    tracer_ctx =
+      Tracer.span_start([:jido, :agent, :sanitize], %{
+        api_key: "secret-api-key",
+        authorization: "Bearer secret-token",
+        stacktrace: [{__MODULE__, :test, 0, []}],
+        message: long_value,
+        labels: Enum.map(1..30, &"label-#{&1}"),
+        details: %{token: "nested-secret", payload: long_value}
+      })
+
+    assert :ok = Tracer.span_stop(tracer_ctx, %{})
+
+    attributes = assert_exported_span() |> span_attributes()
+
+    assert attributes["api_key"] == "[REDACTED]"
+    assert attributes["authorization"] == "[REDACTED]"
+    assert attributes["stacktrace"] == "[OMITTED]"
+    assert attributes["message"] =~ "(truncated)"
+    assert String.length(attributes["message"]) < 600
+    assert length(attributes["labels"]) == 20
+    refute "label-21" in attributes["labels"]
+    assert attributes["details"] =~ "[REDACTED]"
+    refute attributes["details"] =~ "nested-secret"
+  end
+
   test "safe mode does not leak caller current span across async finish" do
     before_span_ctx = OTelTracer.current_span_ctx()
     tracer_ctx = Tracer.span_start([:jido, :agent, :async_safe], %{})
@@ -276,6 +304,54 @@ defmodule Jido.Otel.TracerTest do
     Process.exit(foreign_pid, :kill)
   end
 
+  test "with_span_scope activates a sync parent span and restores caller context" do
+    before_span_ctx = OTelTracer.current_span_ctx()
+
+    result =
+      Tracer.with_span_scope([:jido, :scope, :parent], %{component: :test}, fn ->
+        parent_span_ctx = OTelTracer.current_span_ctx()
+        refute parent_span_ctx == before_span_ctx
+
+        child_span_ctx =
+          OTelTracer.start_span("jido.scope.child", %{attributes: %{child: true}})
+
+        OpenTelemetry.Span.end_span(child_span_ctx)
+
+        assert parent_span_ctx == OTelTracer.current_span_ctx()
+        :scoped_result
+      end)
+
+    assert result == :scoped_result
+    assert before_span_ctx == OTelTracer.current_span_ctx()
+
+    exported_spans = collect_exported_spans(1_000)
+    parent_span = span_by_name(exported_spans, "jido.scope.parent")
+    child_span = span_by_name(exported_spans, "jido.scope.child")
+
+    assert status(code: :ok) = span(parent_span, :status)
+    assert span(child_span, :trace_id) == span(parent_span, :trace_id)
+    assert span(child_span, :parent_span_id) == span(parent_span, :span_id)
+  end
+
+  test "with_span_scope records escaped exceptions and restores caller context" do
+    before_span_ctx = OTelTracer.current_span_ctx()
+
+    assert_raise RuntimeError, "scoped failure", fn ->
+      Tracer.with_span_scope([:jido, :scope, :failure], %{}, fn ->
+        raise "scoped failure"
+      end)
+    end
+
+    assert before_span_ctx == OTelTracer.current_span_ctx()
+
+    exported_span = assert_exported_span()
+
+    assert span(name: "jido.scope.failure") = exported_span
+    assert status(code: :error) = span(exported_span, :status)
+    assert span_attributes(exported_span)["error.kind"] == "error"
+    assert Enum.any?(span_events(exported_span), &(event(&1, :name) == :exception))
+  end
+
   test "span_stop and span_exception ignore invalid tracer contexts" do
     assert :ok = Tracer.span_stop(:invalid_ctx, %{duration: 1})
     assert :ok = Tracer.span_exception(:invalid_ctx, :error, :boom, [])
@@ -340,6 +416,42 @@ defmodule Jido.Otel.TracerTest do
     assert span_attributes(exported_span)["duration"] == 42
   end
 
+  test "Jido.Observe.with_span uses scoped callback for nested OpenTelemetry spans" do
+    previous_observability = Application.get_env(:jido, :observability, [])
+    before_span_ctx = OTelTracer.current_span_ctx()
+
+    Application.put_env(
+      :jido,
+      :observability,
+      Keyword.put(previous_observability, :tracer, Tracer)
+    )
+
+    on_exit(fn ->
+      Application.put_env(:jido, :observability, previous_observability)
+    end)
+
+    assert :ok =
+             Jido.Observe.with_span([:jido, :observe, :scoped], %{component: :test}, fn ->
+               child_span_ctx =
+                 OTelTracer.start_span("jido.observe.scoped.child", %{
+                   attributes: %{child: true}
+                 })
+
+               OpenTelemetry.Span.end_span(child_span_ctx)
+               :ok
+             end)
+
+    assert before_span_ctx == OTelTracer.current_span_ctx()
+
+    exported_spans = collect_exported_spans(1_000)
+    parent_span = span_by_name(exported_spans, "jido.observe.scoped")
+    child_span = span_by_name(exported_spans, "jido.observe.scoped.child")
+
+    assert status(code: :ok) = span(parent_span, :status)
+    assert span(child_span, :trace_id) == span(parent_span, :trace_id)
+    assert span(child_span, :parent_span_id) == span(parent_span, :span_id)
+  end
+
   defp assert_exported_span do
     assert_receive {:span, exported_span}, 1_000
     exported_span
@@ -374,6 +486,14 @@ defmodule Jido.Otel.TracerTest do
     exported_span
     |> span(:events)
     |> :otel_events.list()
+  end
+
+  defp span_by_name(exported_spans, name) do
+    Enum.find(exported_spans, &(span(&1, :name) == name)) ||
+      flunk(
+        "expected exported span named #{inspect(name)}, " <>
+          "got #{inspect(Enum.map(exported_spans, &span(&1, :name)))}"
+      )
   end
 
   defp get_event_attr(event_attributes, key) do
