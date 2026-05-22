@@ -8,9 +8,11 @@ OpenTelemetry extension for the Jido.Observe system.
 
 - Implements `Jido.Observe.Tracer` as `Jido.Otel.Tracer`
 - Converts Jido event prefixes to span names (`[:jido, :agent, :run]` -> `jido.agent.run`)
-- Maps Jido metadata and measurements to OpenTelemetry attributes
+- Sanitizes and maps Jido metadata and measurements to OpenTelemetry attributes
 - Records exceptions as OpenTelemetry exception events
 - Applies idempotent terminal span handling (`first_terminal_call_wins`)
+- Activates synchronous `Jido.Observe.with_span/3` spans as the current OTel span
+  for correctly parented nested instrumentation
 
 ## Installation
 
@@ -61,7 +63,8 @@ config :jido_otel,
   current_span_mode: :safe
 ```
 
-Use `Jido.Observe` spans as usual and they will be bridged to OpenTelemetry:
+Use `Jido.Observe` spans as usual and they will be bridged to OpenTelemetry.
+Synchronous `with_span/3` spans are activated only while the callback runs:
 
 ```elixir
 Jido.Observe.with_span([:jido, :agent, :action, :run], %{agent_id: "agent-1"}, fn ->
@@ -80,6 +83,9 @@ For exporting to an OTLP collector, set your preferred exporter config in your h
 - `:activate_unsafe`: preserves legacy same-process activation/restore behavior.
 
 For async `start_span`/`finish_span` flows across processes, use `:safe`.
+Synchronous `Jido.Observe.with_span/3` uses `with_span_scope/3`, which activates
+the span only in the caller process and restores the previous current span before
+returning.
 
 Terminal callbacks (`span_stop/2` and `span_exception/4`) are idempotent. When multiple terminal calls race, the first terminal call wins and later calls are no-op.
 

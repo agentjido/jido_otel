@@ -50,6 +50,16 @@ Jido.Observe.with_span([:jido, :agent, :action, :run], %{agent_id: "agent-1"}, f
 end)
 ```
 
-The span name becomes `jido.agent.action.run` and metadata is attached as OpenTelemetry attributes.
+The span name becomes `jido.agent.action.run` and sanitized metadata is attached
+as OpenTelemetry attributes. While the callback runs, the Jido span is the
+current OpenTelemetry span, so nested OTel-aware libraries create child spans
+under it.
+
+Async lifecycle spans remain context-neutral:
+
+```elixir
+span_ctx = Jido.Observe.start_span([:jido, :agent, :async], %{agent_id: "agent-1"})
+Jido.Observe.finish_span(span_ctx)
+```
 
 Terminal span callbacks are idempotent (`first_terminal_call_wins`).
