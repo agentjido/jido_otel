@@ -1,7 +1,7 @@
 defmodule Jido.Otel.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "1.0.0"
   @source_url "https://github.com/agentjido/jido_otel"
   @description "OpenTelemetry tracer bridge for Jido.Observe"
 
@@ -67,7 +67,7 @@ defmodule Jido.Otel.MixProject do
   defp deps do
     [
       # Jido ecosystem
-      {:jido, "~> 2.1"},
+      {:jido, "~> 2.3"},
 
       # OpenTelemetry runtime
       {:opentelemetry, "~> 1.7"},
