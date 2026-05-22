@@ -1,5 +1,13 @@
 # Jido.Otel
 
+[![Hex.pm](https://img.shields.io/hexpm/v/jido_otel.svg)](https://hex.pm/packages/jido_otel)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/jido_otel/)
+[![CI](https://github.com/agentjido/jido_otel/actions/workflows/ci.yml/badge.svg)](https://github.com/agentjido/jido_otel/actions/workflows/ci.yml)
+[![License](https://img.shields.io/hexpm/l/jido_otel.svg)](https://github.com/agentjido/jido_otel/blob/main/LICENSE)
+[![Website](https://img.shields.io/badge/website-jido.run-0f172a.svg)](https://jido.run)
+[![Ecosystem](https://img.shields.io/badge/ecosystem-jido.run-0ea5e9.svg)](https://jido.run/ecosystem)
+[![Discord](https://img.shields.io/badge/discord-join-5865F2.svg?logo=discord&logoColor=white)](https://jido.run/discord)
+
 OpenTelemetry extension for the Jido.Observe system.
 
 `Jido.Otel` provides integrated observability instrumentation for Jido-based applications, bridging the Jido ecosystem with standard OpenTelemetry practices.
