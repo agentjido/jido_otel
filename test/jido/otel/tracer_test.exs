@@ -15,20 +15,17 @@ defmodule Jido.Otel.TracerTest do
   setup do
     {:ok, _apps} = Application.ensure_all_started(:opentelemetry)
     previous_span_mode = Application.get_env(:jido_otel, :current_span_mode, :__missing__)
+    test_pid = self()
 
     Application.put_env(:jido_otel, :current_span_mode, :safe)
-
-    if Process.whereis(:otel_test_exporter) != nil do
-      raise "otel test exporter is already registered"
-    end
-
-    true = Process.register(self(), :otel_test_exporter)
+    wait_for_exporter_release(test_pid)
+    true = Process.register(test_pid, :otel_test_exporter)
     flush_exported_spans()
 
     on_exit(fn ->
       restore_env(:jido_otel, :current_span_mode, previous_span_mode)
 
-      if Process.whereis(:otel_test_exporter) == self() do
+      if Process.whereis(:otel_test_exporter) == test_pid do
         Process.unregister(:otel_test_exporter)
       end
     end)
@@ -150,7 +147,13 @@ defmodule Jido.Otel.TracerTest do
         stacktrace: [{__MODULE__, :test, 0, []}],
         message: long_value,
         labels: Enum.map(1..30, &"label-#{&1}"),
-        details: %{token: "nested-secret", payload: long_value}
+        details: %{
+          token: "nested-secret",
+          payload: long_value,
+          deep: %{one: %{two: %{three: %{four: "hidden"}}}}
+        },
+        tuple: {:ok, %{token: "tuple-secret"}},
+        struct: %Jido.Otel.UnsafeInspect{value: "struct-value"}
       })
 
     assert :ok = Tracer.span_stop(tracer_ctx, %{})
@@ -165,7 +168,24 @@ defmodule Jido.Otel.TracerTest do
     assert length(attributes["labels"]) == 20
     refute "label-21" in attributes["labels"]
     assert attributes["details"] =~ "[REDACTED]"
+    assert attributes["details"] =~ "[DEPTH_LIMIT]"
     refute attributes["details"] =~ "nested-secret"
+    assert attributes["tuple"] =~ "[REDACTED]"
+    refute attributes["tuple"] =~ "tuple-secret"
+    assert attributes["struct"] =~ "Jido.Otel.UnsafeInspect"
+    assert attributes["struct"] =~ "struct-value"
+  end
+
+  test "falls back safely when event prefix segments cannot be inspected" do
+    tracer_ctx = Tracer.span_start([:jido, %Jido.Otel.UnsafeInspect{value: :unsafe}], %{})
+    assert :ok = Tracer.span_stop(tracer_ctx, %{})
+
+    exported_span = assert_exported_span()
+
+    span_name = span(exported_span, :name)
+
+    assert String.contains?(span_name, "#Inspect.Error<Jido.Otel.UnsafeInspect>")
+    refute String.contains?(span_name, "inspect failed")
   end
 
   test "safe mode does not leak caller current span across async finish" do
@@ -352,6 +372,36 @@ defmodule Jido.Otel.TracerTest do
     assert Enum.any?(span_events(exported_span), &(event(&1, :name) == :exception))
   end
 
+  test "with_span_scope preserves throws while recording an errored span" do
+    before_span_ctx = OTelTracer.current_span_ctx()
+
+    assert catch_throw(
+             Tracer.with_span_scope([:jido, :scope, :throw], %{}, fn ->
+               throw(:scoped_throw)
+             end)
+           ) == :scoped_throw
+
+    assert before_span_ctx == OTelTracer.current_span_ctx()
+
+    exported_span = assert_exported_span()
+
+    assert span(name: "jido.scope.throw") = exported_span
+    assert status(code: :error) = span(exported_span, :status)
+    assert span_attributes(exported_span)["error.kind"] == "throw"
+
+    exception_event = Enum.find(span_events(exported_span), &(event(&1, :name) == :exception))
+    assert exception_event != nil
+
+    event_attributes =
+      exception_event
+      |> event(:attributes)
+      |> :otel_attributes.map()
+
+    assert get_event_attr(event_attributes, "exception.type") == "throw"
+    assert get_event_attr(event_attributes, "exception.message") == "scoped_throw"
+    assert is_binary(get_event_attr(event_attributes, "exception.stacktrace"))
+  end
+
   test "span_stop and span_exception ignore invalid tracer contexts" do
     assert :ok = Tracer.span_stop(:invalid_ctx, %{duration: 1})
     assert :ok = Tracer.span_exception(:invalid_ctx, :error, :boom, [])
@@ -518,6 +568,28 @@ defmodule Jido.Otel.TracerTest do
       {:span, _span} -> flush_exported_spans()
     after
       0 -> :ok
+    end
+  end
+
+  defp wait_for_exporter_release(test_pid) do
+    case Process.whereis(:otel_test_exporter) do
+      nil ->
+        :ok
+
+      ^test_pid ->
+        Process.unregister(:otel_test_exporter)
+
+      exporter_pid ->
+        ref = Process.monitor(exporter_pid)
+
+        receive do
+          {:DOWN, ^ref, :process, ^exporter_pid, _reason} ->
+            :ok
+        after
+          1_000 ->
+            Process.demonitor(ref, [:flush])
+            raise "otel test exporter is already registered by #{inspect(exporter_pid)}"
+        end
     end
   end
 

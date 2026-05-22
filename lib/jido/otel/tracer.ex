@@ -409,7 +409,7 @@ defmodule Jido.Otel.Tracer do
   defp sanitize_for_inspect(%_{} = value, depth) do
     value
     |> Map.from_struct()
-    |> Map.put(:__struct__, value.__struct__)
+    |> Map.put("__struct__", value.__struct__)
     |> sanitize_for_inspect(depth - 1)
   rescue
     _ -> inspect_fallback(value)
@@ -451,10 +451,14 @@ defmodule Jido.Otel.Tracer do
   defp safe_inspect(value, limit \\ @inspect_limit, printable_limit \\ @printable_limit) do
     value
     |> inspect(limit: limit, printable_limit: printable_limit)
+    |> reject_inspect_error(value)
     |> truncate_string(@max_inspect_chars)
   rescue
     _ -> inspect_fallback(value)
   end
+
+  defp reject_inspect_error("#Inspect.Error<" <> _rest, value), do: inspect_fallback(value)
+  defp reject_inspect_error(inspected, _value), do: inspected
 
   defp inspect_fallback(value) do
     module =
