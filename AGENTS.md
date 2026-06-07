@@ -89,6 +89,7 @@ jido_otel/
 ## Git Commit Guidelines
 
 We follow [Conventional Commits](https://www.conventionalcommits.org/):
+- Do not modify `CHANGELOG.md`; release notes are generated from Git history during release, so keep changes focused on proper Conventional Commits.
 
 ```
 type(scope): description
@@ -163,7 +164,7 @@ end
 - [ ] Code passes `mix quality`
 - [ ] Tests pass with good coverage (>90%)
 - [ ] Documentation is complete (`mix doctor --raise`)
-- [ ] CHANGELOG.md is updated
+- [ ] Commit messages follow Conventional Commits so release notes can be generated from Git history
 - [ ] Commit messages follow conventional commits
 - [ ] No uncommitted changes
 
@@ -178,7 +179,7 @@ git push origin main --tags
 
 This will:
 1. Update version in mix.exs
-2. Update CHANGELOG.md
+2. Generate release notes from Git history
 3. Create git tag
 4. Push to GitHub
 
