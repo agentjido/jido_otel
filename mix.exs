@@ -67,8 +67,7 @@ defmodule Jido.Otel.MixProject do
   defp deps do
     [
       # Jido ecosystem
-      {:jido,
-       git: "https://github.com/agentjido/jido.git", ref: "0c8853bf451a40330b7192c9d2200a06f9c61261", override: true},
+      {:jido, "~> 2.4", override: true},
 
       # OpenTelemetry runtime
       {:opentelemetry, "~> 1.7"},
