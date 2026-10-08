@@ -67,7 +67,7 @@ defmodule Jido.Otel.MixProject do
   defp deps do
     [
       # Jido ecosystem
-      {:jido, "~> 2.3"},
+      {:jido, "~> 2.4"},
 
       # OpenTelemetry runtime
       {:opentelemetry, "~> 1.7"},
