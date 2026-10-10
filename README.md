@@ -124,6 +124,10 @@ Full documentation is available at [https://hexdocs.pm/jido_otel](https://hexdoc
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
+## Local Documentation
+
+Run `mix docs` to generate HTML and Markdown documentation in `doc/`, including Markdown pages and `llms.txt`.
+
 ## License
 
 Apache License 2.0 - see [LICENSE](LICENSE) for details.
