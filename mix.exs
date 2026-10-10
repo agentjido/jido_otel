@@ -76,7 +76,7 @@ defmodule Jido.Otel.MixProject do
       # Dev/Test
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.40.4", only: :dev, runtime: false},
       {:doctor, "~> 0.22", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18", only: [:dev, :test]},
       {:git_ops, "~> 2.9", only: :dev, runtime: false}
