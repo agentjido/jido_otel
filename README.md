@@ -1,10 +1,9 @@
 # Jido.Otel
 
 > [!IMPORTANT]
-> This package is planned for deprecation with Jido 3.x. Its functionality will
-> move into Jido core as an opt-in integration, so unused code is not included
-> in production builds. Track the transition in
-> [agentjido/jido#368](https://github.com/agentjido/jido/issues/368).
+> **`jido_otel` is planned for deprecation.** Jido v3 provides [telemetry and OpenTelemetry integration](https://github.com/agentjido/jido/blob/main/guides/operations/metrics-and-open-telemetry.md).
+>
+> Check event names, spans, and exporter configuration before moving an existing application.
 
 [![Hex.pm](https://img.shields.io/hexpm/v/jido_otel.svg)](https://hex.pm/packages/jido_otel)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/jido_otel/)
